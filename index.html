@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>THE BACKROOMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-user-select: none; 
+    user-select: none;
+  }
 
   body {
-    background: #0a0900;
+    background: #121101;
     color: #c8c400;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Oxanium', sans-serif;
     overflow: hidden;
     width: 100vw;
     height: 100vh;
@@ -25,7 +35,7 @@
     align-items: center;
     justify-content: center;
     z-index: 100;
-    background: #0a0900;
+    background: #121101;
     transition: opacity 0.8s ease;
   }
 
@@ -34,7 +44,7 @@
     pointer-events: none;
   }
 
-  /* CRT scanlines */
+  /* CRT effects */
   #menu::before {
     content: '';
     position: fixed;
@@ -43,22 +53,18 @@
       to bottom,
       transparent 0px,
       transparent 3px,
-      rgba(0,0,0,0.18) 3px,
-      rgba(0,0,0,0.18) 4px
+      rgba(0,0,0,0.2) 3px,
+      rgba(0,0,0,0.2) 4px
     );
     pointer-events: none;
     z-index: 200;
   }
 
-  /* CRT vignette */
   #menu::after {
     content: '';
     position: fixed;
     inset: 0;
-    background: radial-gradient(ellipse at center,
-      transparent 55%,
-      rgba(0,0,0,0.75) 100%
-    );
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
     pointer-events: none;
     z-index: 201;
   }
@@ -73,9 +79,9 @@
   }
 
   .title-eyebrow {
-    font-size: clamp(9px, 1.2vw, 13px);
+    font-size: clamp(10px, 1.2vw, 14px);
     letter-spacing: 0.5em;
-    color: #7a7700;
+    color: #6a6700;
     text-transform: uppercase;
     margin-bottom: 18px;
     animation: flicker 6s infinite;
@@ -84,20 +90,18 @@
   .title-main {
     font-size: clamp(48px, 9vw, 120px);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.05em;
     line-height: 0.9;
     color: #c8c400;
     text-align: center;
-    text-shadow:
-      0 0 30px rgba(200,196,0,0.4),
-      0 0 80px rgba(200,196,0,0.15);
+    text-shadow: 0 0 30px rgba(200,196,0,0.35), 0 0 80px rgba(200,196,0,0.15);
     animation: titlePulse 4s ease-in-out infinite;
   }
 
   .title-sub {
     font-size: clamp(10px, 1.4vw, 15px);
     letter-spacing: 0.35em;
-    color: #5a5800;
+    color: #4a4800;
     text-transform: uppercase;
     margin-top: 20px;
     margin-bottom: 60px;
@@ -107,8 +111,8 @@
     background: transparent;
     border: 1px solid #c8c400;
     color: #c8c400;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: clamp(11px, 1.4vw, 15px);
+    font-family: 'Oxanium', sans-serif;
+    font-size: clamp(12px, 1.4vw, 16px);
     letter-spacing: 0.4em;
     text-transform: uppercase;
     padding: 16px 48px;
@@ -120,13 +124,11 @@
 
   .enter-btn:hover, .enter-btn:focus {
     background: #c8c400;
-    color: #0a0900;
+    color: #121101;
     box-shadow: 0 0 30px rgba(200,196,0,0.35);
   }
 
-  .enter-btn:active {
-    transform: scale(0.97);
-  }
+  .enter-btn:active { transform: scale(0.97); }
 
   .hint {
     margin-top: 48px;
@@ -145,7 +147,7 @@
     margin: 32px auto;
   }
 
-  /* ── GAME ── */
+  /* ── GAME CANVAS & HUD ── */
   #game-canvas {
     display: block;
     position: fixed;
@@ -154,7 +156,6 @@
     height: 100%;
   }
 
-  /* HUD */
   #hud {
     position: fixed;
     inset: 0;
@@ -165,18 +166,13 @@
 
   #hud.visible { display: block; }
 
-  /* Subtle vignette in game */
   #hud::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center,
-      transparent 60%,
-      rgba(0,0,0,0.55) 100%
-    );
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.75) 100%);
   }
 
-  /* Scanlines over game too — very subtle */
   #hud::before {
     content: '';
     position: absolute;
@@ -185,8 +181,8 @@
       to bottom,
       transparent 0px,
       transparent 3px,
-      rgba(0,0,0,0.04) 3px,
-      rgba(0,0,0,0.04) 4px
+      rgba(0,0,0,0.05) 3px,
+      rgba(0,0,0,0.05) 4px
     );
     pointer-events: none;
   }
@@ -198,7 +194,7 @@
     transform: translate(-50%, -50%);
     width: 14px;
     height: 14px;
-    opacity: 0.55;
+    opacity: 0.4;
   }
 
   .crosshair::before, .crosshair::after {
@@ -207,85 +203,94 @@
     background: #c8c400;
   }
 
-  .crosshair::before {
-    width: 1px;
-    height: 100%;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-  }
-
-  .crosshair::after {
-    height: 1px;
-    width: 100%;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-  }
+  .crosshair::before { width: 1px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
+  .crosshair::after { height: 1px; width: 100%; top: 50%; left: 0; transform: translateY(-50%); }
 
   #coords {
     position: absolute;
     bottom: 24px;
     left: 24px;
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.25em;
-    color: rgba(200,196,0,0.3);
-    font-family: 'Courier New', Courier, monospace;
+    color: rgba(200,196,0,0.35);
   }
 
   #level-tag {
     position: absolute;
     top: 24px;
     left: 24px;
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.35em;
-    color: rgba(200,196,0,0.25);
-    font-family: 'Courier New', Courier, monospace;
+    color: rgba(200,196,0,0.3);
     text-transform: uppercase;
   }
 
-  /* Mobile joystick */
+  /* ── MOBILE CONTROLS SYSTEM ── */
   #joystick-zone {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 50%;
-    height: 200px;
-    z-index: 20;
-    display: none;
-  }
-
-  #look-zone {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 50%;
-    height: 200px;
-    z-index: 20;
+    bottom: 30px;
+    left: 30px;
+    width: 120px;
+    height: 120px;
+    z-index: 25;
     display: none;
   }
 
   #joystick-pad {
-    position: absolute;
-    bottom: 30px;
-    left: 50px;
-    width: 90px;
-    height: 90px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    border: 1px solid rgba(200,196,0,0.2);
-    background: rgba(200,196,0,0.04);
+    border: 2px solid rgba(200,196,0,0.25);
+    background: rgba(18,17,1,0.7);
+    position: relative;
   }
 
   #joystick-thumb {
     position: absolute;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: rgba(200,196,0,0.35);
+    background: rgba(200,196,0,0.45);
+    box-shadow: 0 0 15px rgba(200,196,0,0.2);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
+  }
+
+  #mobile-jump-btn {
+    position: fixed;
+    bottom: 50px;
+    right: 40px;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(18,17,1,0.7);
+    border: 2px solid rgba(200,196,0,0.3);
+    color: rgba(200,196,0,0.7);
+    font-family: 'Oxanium', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 25;
+    display: none;
+    outline: none;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #mobile-jump-btn:active {
+    background: #c8c400;
+    color: #121101;
+  }
+
+  #look-zone {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: none;
   }
 
   #back-btn {
@@ -294,10 +299,10 @@
     right: 20px;
     z-index: 50;
     background: transparent;
-    border: 1px solid rgba(200,196,0,0.25);
-    color: rgba(200,196,0,0.4);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
+    border: 1px solid rgba(200,196,0,0.2);
+    color: rgba(200,196,0,0.35);
+    font-family: 'Oxanium', sans-serif;
+    font-size: 11px;
     letter-spacing: 0.3em;
     padding: 8px 16px;
     cursor: pointer;
@@ -307,11 +312,10 @@
   }
 
   #back-btn:hover {
-    border-color: rgba(200,196,0,0.6);
-    color: rgba(200,196,0,0.8);
+    border-color: rgba(200,196,0,0.5);
+    color: rgba(200,196,0,0.7);
   }
 
-  /* Click-to-look prompt */
   #click-prompt {
     position: fixed;
     bottom: 80px;
@@ -319,8 +323,7 @@
     transform: translateX(-50%);
     font-size: 11px;
     letter-spacing: 0.3em;
-    color: rgba(200,196,0,0.4);
-    font-family: 'Courier New', Courier, monospace;
+    color: rgba(200,196,0,0.35);
     text-transform: uppercase;
     z-index: 20;
     display: none;
@@ -338,8 +341,8 @@
   }
 
   @keyframes titlePulse {
-    0%, 100% { text-shadow: 0 0 30px rgba(200,196,0,0.4), 0 0 80px rgba(200,196,0,0.15); }
-    50% { text-shadow: 0 0 45px rgba(200,196,0,0.55), 0 0 100px rgba(200,196,0,0.2); }
+    0%, 100% { text-shadow: 0 0 30px rgba(200,196,0,0.35), 0 0 80px rgba(200,196,0,0.15); }
+    50% { text-shadow: 0 0 45px rgba(200,196,0,0.5), 0 0 100px rgba(200,196,0,0.25); }
   }
 
   @keyframes blink {
@@ -384,20 +387,23 @@
 <div id="click-prompt">Click to look around</div>
 <button id="back-btn">&#x2190; Menu</button>
 
+<div id="look-zone"></div>
 <div id="joystick-zone">
   <div id="joystick-pad">
     <div id="joystick-thumb"></div>
   </div>
 </div>
-<div id="look-zone"></div>
+<button id="mobile-jump-btn">Jump</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-// ═══════════════════════════════════════════════════════════
-//  BACKROOMS — Infinite Procedural Maze
-//  Manual yaw/pitch camera (no PointerLockControls)
-// ═══════════════════════════════════════════════════════════
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
+<script>
 (function () {
   'use strict';
 
@@ -405,36 +411,35 @@
   const CELL   = 8;          // metres per cell
   const WALL_H = 3.2;        // wall height
   const CHUNK  = 8;          // cells per chunk side
-  const RENDER = 3;          // chunks radius to keep loaded
+  const RENDER = 2;          // Optimized chunk radius
   const SPEED  = 6;
   const RUN    = 13;
   const CAM_H  = 1.65;
   const FOV    = 75;
   const SEED   = 42;
 
-  // Jump configuration
   const GRAVITY = 24;
   const JUMP_FORCE = 8.2;
 
-  // Backrooms palette — washed fluorescent yellow
+  // Sickly, murky green-yellow tint for atmospheric liminal decay
   const COL_WALL   = 0xd4c97a;
-  const COL_FOG    = 0x1a1900;
+  const COL_FOG    = 0x121101; 
 
   // ── State ─────────────────────────────────────────────────
-  let renderer, scene, camera;
+  let renderer, scene, camera, composer;
   let running = false;
-  let chunks  = new Map(); // "cx,cy" → group
+  let chunks  = new Map();
 
   // Input
   const keys  = {};
-  let yaw     = 0;   // horizontal rotation (radians)
-  let pitch   = 0;   // vertical rotation
+  let yaw     = 0;
+  let pitch   = 0;
   let isDragging  = false;
   let lastMouseX  = 0;
   let lastMouseY  = 0;
-  let lookActive  = false;  // true once user has clicked canvas
+  let lookActive  = false;
 
-  // Physics state
+  // Physics
   let velocityY = 0;
   let isJumping = false;
 
@@ -447,7 +452,11 @@
   let lookTouchId = null;
   let lookLastX = 0, lookLastY = 0;
 
-  // Audio Context Nodes
+  // Dynamic shadow casting point light pool
+  const lightPool = [];
+  const NUM_DYNAMIC_LIGHTS = 4;
+
+  // Audio Context Nodes (+10 dB Amplified Levels)
   let audioCtx = null;
   let humLowOsc = null;
   let humHighOsc = null;
@@ -469,7 +478,7 @@
     return mulberry32(SEED ^ (cx * 73856093) ^ (cy * 19349663));
   }
 
-  // ── Maze generator (simple DFS per chunk) ─────────────────
+  // ── Maze Generator ────────────────────────────────────────
   function generateChunkMaze(cx, cy) {
     const rng    = chunkRng(cx, cy);
     const N      = CHUNK;
@@ -528,16 +537,15 @@
     return walls;
   }
 
-  // ── Procedural Sound Engine (Web Audio API) ────────────────
+  // ── Procedural Audio Engine ────────────────────────────────
   function initAudio() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     masterHumGain = audioCtx.createGain();
-    masterHumGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    masterHumGain.gain.setValueAtTime(0.38, audioCtx.currentTime);
     masterHumGain.connect(audioCtx.destination);
 
-    // 1. Low Frequency electrical hum (50Hz mains frequency)
     humLowOsc = audioCtx.createOscillator();
     humLowOsc.type = 'sawtooth';
     humLowOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
@@ -553,7 +561,6 @@
     humLowFilter.connect(humLowGain);
     humLowGain.connect(masterHumGain);
 
-    // 2. High Frequency fluorescent bulb ballast buzz/hiss
     humHighOsc = audioCtx.createOscillator();
     humHighOsc.type = 'triangle';
     humHighOsc.frequency.setValueAtTime(145, audioCtx.currentTime);
@@ -570,7 +577,6 @@
     humHighFilter.connect(humHighGain);
     humHighGain.connect(masterHumGain);
 
-    // Start oscillators
     humLowOsc.start(0);
     humHighOsc.start(0);
   }
@@ -585,7 +591,7 @@
     thumpOsc.frequency.setValueAtTime(75, now);
     thumpOsc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
 
-    thumpGain.gain.setValueAtTime(isVelocityHigh ? 0.45 : 0.3, now);
+    thumpGain.gain.setValueAtTime(isVelocityHigh ? 1.42 : 0.95, now);
     thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
     thumpOsc.connect(thumpGain);
@@ -609,7 +615,7 @@
     noiseFilter.Q.setValueAtTime(1.2, now);
 
     const noiseGain = audioCtx.createGain();
-    noiseGain.gain.setValueAtTime(isVelocityHigh ? 0.07 : 0.04, now);
+    noiseGain.gain.setValueAtTime(isVelocityHigh ? 0.22 : 0.13, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
 
     noiseSource.connect(noiseFilter);
@@ -619,29 +625,27 @@
     noiseSource.stop(now + 0.13);
   }
 
-  // ── Geometry & Custom Texture Helpers ──────────────────────
+  // ── Optimized Texture Pipelines ────────────────────────────
   let wallMat, ceilMat, floorMat;
 
   function buildMaterials() {
-    
-    // 1. Wallpaper Texture 
     function makeWallTexture() {
-      const sz = 256;
+      const sz = 128;
       const cvs = document.createElement('canvas');
       cvs.width = cvs.height = sz;
       const ctx = cvs.getContext('2d');
       ctx.fillStyle = '#d4c97a';
       ctx.fillRect(0, 0, sz, sz);
       
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.025)';
-      for (let x = 0; x < sz; x += 16) {
-        ctx.fillRect(x, 0, 2, sz);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      for (let x = 0; x < sz; x += 8) {
+        ctx.fillRect(x, 0, 1, sz);
       }
       
       const img = ctx.getImageData(0, 0, sz, sz);
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
-        const v = (Math.random() - 0.5) * 18;
+        const v = (Math.random() - 0.5) * 14;
         d[i]   = Math.min(255, Math.max(0, d[i]   + v));
         d[i+1] = Math.min(255, Math.max(0, d[i+1] + v));
         d[i+2] = Math.min(255, Math.max(0, d[i+2] + v));
@@ -654,20 +658,18 @@
       return tex;
     }
 
-    // 2. Seamless Moist Office Carpet
     function makeCarpetTexture() {
-      const sz = 128;
+      const sz = 64;
       const cvs = document.createElement('canvas');
       cvs.width = cvs.height = sz;
       const ctx = cvs.getContext('2d');
-      
       ctx.fillStyle = '#837b3e'; 
       ctx.fillRect(0, 0, sz, sz);
       
       const img = ctx.getImageData(0, 0, sz, sz);
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 28;
+        const noise = (Math.random() - 0.5) * 22;
         d[i]   = Math.min(255, Math.max(0, d[i]   + noise));
         d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise));
         d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise));
@@ -680,13 +682,11 @@
       return tex;
     }
 
-    // 3. Rescaled Single Drop Ceiling Grid Square (2x Bigger Grid, No Offset)
     function makeCeilingTexture() {
-      const sz = 128;
+      const sz = 64;
       const cvs = document.createElement('canvas');
       cvs.width = cvs.height = sz;
       const ctx = cvs.getContext('2d');
-      
       ctx.fillStyle = '#cbd2a2'; 
       ctx.fillRect(0, 0, sz, sz);
       
@@ -694,7 +694,7 @@
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
         if (Math.random() < 0.25) {
-          const v = (Math.random() - 0.7) * 22;
+          const v = (Math.random() - 0.7) * 16;
           d[i]   = Math.min(255, Math.max(0, d[i]   + v));
           d[i+1] = Math.min(255, Math.max(0, d[i+1] + v));
           d[i+2] = Math.min(255, Math.max(0, d[i+2] + v));
@@ -702,15 +702,12 @@
       }
       ctx.putImageData(img, 0, 0);
       
-      // Outer framing t-bars drawn cleanly at boundaries
       ctx.strokeStyle = 'rgba(64, 61, 44, 0.85)';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 2;
       ctx.strokeRect(0, 0, sz, sz);
       
       const tex = new THREE.CanvasTexture(cvs);
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      
-      // Matrix factor 4 produces tiles spanning exactly 2x2 meters on an 8m plane
       tex.repeat.set(4, 4); 
       return tex;
     }
@@ -720,6 +717,7 @@
     floorMat = new THREE.MeshLambertMaterial({ map: makeCarpetTexture() });
   }
 
+  // ── Chunk Generation ──
   function buildChunk(cx, cy) {
     const group  = new THREE.Group();
     const walls  = generateChunkMaze(cx, cy);
@@ -736,61 +734,61 @@
         const wx = ox + cx2 * CELL + CELL / 2;
         const wz = oy + cy2 * CELL + CELL / 2;
 
-        // Floor
         const fl = new THREE.Mesh(floorGeo, floorMat);
         fl.rotation.x = -Math.PI / 2;
         fl.position.set(wx, 0, wz);
+        fl.receiveShadow = true;
         group.add(fl);
 
-        // Ceiling
         const cl = new THREE.Mesh(ceilGeo, ceilMat);
         cl.rotation.x = Math.PI / 2;
         cl.position.set(wx, WALL_H, wz);
+        cl.receiveShadow = true;
         group.add(cl);
 
-        // East wall
         if (walls.has(`${cx2},${cy2}-E`)) {
           const m = new THREE.Mesh(wallGeoV, wallMat);
           m.position.set(wx + CELL / 2, WALL_H / 2, wz);
+          m.castShadow = true;
+          m.receiveShadow = true;
           group.add(m);
         }
 
-        // South wall
         if (walls.has(`${cx2},${cy2}-S`)) {
           const m = new THREE.Mesh(wallGeoH, wallMat);
           m.position.set(wx, WALL_H / 2, wz + CELL / 2);
+          m.castShadow = true;
+          m.receiveShadow = true;
           group.add(m);
         }
 
-        // West border of chunk
         if (cx2 === 0) {
           const m = new THREE.Mesh(wallGeoV, wallMat);
           m.position.set(wx - CELL / 2, WALL_H / 2, wz);
+          m.castShadow = true;
+          m.receiveShadow = true;
           group.add(m);
         }
 
-        // North border of chunk
         if (cy2 === 0) {
           const m = new THREE.Mesh(wallGeoH, wallMat);
           m.position.set(wx, WALL_H / 2, wz - CELL / 2);
+          m.castShadow = true;
+          m.receiveShadow = true;
           group.add(m);
         }
 
-        // Fluorescent Panel Fixtures perfectly snapped inside 1 single tile grid square (1:1 alignment)
+        // Ceiling Fixtures
         if ((cx2 + cy2) % 2 === 0) {
-          // Offsetting the position by -1.0 shifts the fixture away from the grid intersection line
-          // directly into the true center of the tile square bounding area.
           const lx = wx - 1.0;
           const lz = wz - 1.0;
 
-          // Metal perimeter framing
           const frameGeo = new THREE.BoxGeometry(2.04, 0.04, 2.04);
-          const frameMat = new THREE.MeshLambertMaterial({ color: 0x4a4734 });
+          const frameMat = new THREE.MeshLambertMaterial({ color: 0x3a382e });
           const frame = new THREE.Mesh(frameGeo, frameMat);
           frame.position.set(lx, WALL_H - 0.02, lz);
           group.add(frame);
 
-          // Internal fluorescent luminous face - dropped lower than frame edge to fix visibility and shadowing bugs
           const lightGeo = new THREE.BoxGeometry(1.96, 0.02, 1.96); 
           const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffebb }); 
           const light    = new THREE.Mesh(lightGeo, lightMat);
@@ -805,7 +803,6 @@
     return group;
   }
 
-  // ── Chunk management ──────────────────────────────────────
   function chunkOf(worldX, worldZ) {
     return [
       Math.floor(worldX / (CHUNK * CELL)),
@@ -839,7 +836,7 @@
     }
   }
 
-  // ── Collision ─────────────────────────────────────────────
+  // ── Collision ──
   const raycaster   = new THREE.Raycaster();
   const RAY_DIRS    = [
     new THREE.Vector3( 1, 0,  0),
@@ -879,16 +876,70 @@
     return result;
   }
 
-  // ── Lights ────────────────────────────────────────────────
+  // ── Balanced Creepy Lighting & Dynamic Shadows ──
   function setupLights() {
-    const ambient = new THREE.AmbientLight(0xd4c970, 0.5);
+    // Increased values to avoid complete pitch-black blindness while keeping environments dark
+    const ambient = new THREE.AmbientLight(0xd4c970, 0.14);
     scene.add(ambient);
 
-    const hemi = new THREE.HemisphereLight(0xf0e880, 0x302800, 0.55);
+    const hemi = new THREE.HemisphereLight(0xf0e880, 0x121101, 0.16);
     scene.add(hemi);
+
+    // Expanded light ranges slightly to build wider, visible light pooling intersections
+    for (let i = 0; i < NUM_DYNAMIC_LIGHTS; i++) {
+      const pl = new THREE.PointLight(0xfffebb, 0.8, 15); 
+      pl.castShadow = true;
+      pl.shadow.mapSize.width = 512;  
+      pl.shadow.mapSize.height = 512;
+      pl.shadow.camera.near = 0.4;
+      pl.shadow.camera.far = 15;
+      pl.shadow.bias = -0.003;
+      scene.add(pl);
+      lightPool.push(pl);
+    }
   }
 
-  // ── Init Three.js ─────────────────────────────────────────
+  function updateDynamicLights() {
+    const px = camera.position.x;
+    const pz = camera.position.z;
+    const currentCellX = Math.floor(px / CELL);
+    const currentCellZ = Math.floor(pz / CELL);
+    const candidates = [];
+
+    for (let cz = currentCellZ - 3; cz <= currentCellZ + 3; cz++) {
+      for (let cx = currentCellX - 3; cx <= currentCellX + 3; cx++) {
+        const chunkX = Math.floor(cx / CHUNK);
+        const chunkZ = Math.floor(cz / CHUNK);
+        let relX = cx % CHUNK;
+        let relZ = cz % CHUNK;
+        if (relX < 0) relX += CHUNK;
+        if (relZ < 0) relZ += CHUNK;
+
+        if ((relX + relZ) % 2 === 0) {
+          const ox = chunkX * CHUNK * CELL;
+          const oz = chunkZ * CHUNK * CELL;
+          const lx = (ox + relX * CELL + CELL / 2) - 1.0;
+          const lz = (oz + relZ * CELL + CELL / 2) - 1.0;
+          const dx = lx - px;
+          const dz = lz - pz;
+          candidates.push({ x: lx, z: lz, dSq: dx*dx + dz*dz });
+        }
+      }
+    }
+
+    candidates.sort((a, b) => a.dSq - b.dSq);
+
+    for (let i = 0; i < lightPool.length; i++) {
+      if (candidates[i]) {
+        lightPool[i].position.set(candidates[i].x, WALL_H - 0.2, candidates[i].z);
+        lightPool[i].visible = true;
+      } else {
+        lightPool[i].visible = false;
+      }
+    }
+  }
+
+  // ── Init Three.js & Fog Setup ──
   function initThree() {
     const canvas = document.getElementById('game-canvas');
 
@@ -900,9 +951,14 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     renderer.setClearColor(COL_FOG);
+    
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(COL_FOG, CELL * 2, CHUNK * CELL * 1.6);
+    
+    // Balanced Murky Fog: Corridors are visible nearby, but completely disappear into haze at 22 meters
+    scene.fog = new THREE.Fog(COL_FOG, 4.0, 22.0);
 
     camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, CHUNK * CELL * 2.5);
     camera.position.set(CELL / 2, CAM_H, CELL / 2);
@@ -911,9 +967,21 @@
     buildMaterials();
     setupLights();
     updateChunks(camera.position.x, camera.position.z);
+
+    // Post Processing Pipeline (Bloom Engine)
+    composer = new THREE.EffectComposer(renderer);
+    const renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.45, 
+      0.35,  
+      0.18  
+    );
+    composer.addPass(bloomPass);
   }
 
-  // ── Camera rotation ───────────────────────────────────────
   function applyLook(dx, dy) {
     const SENS = 0.0022;
     yaw   -= dx * SENS;
@@ -923,7 +991,7 @@
     camera.quaternion.setFromEuler(euler);
   }
 
-  // ── Input ─────────────────────────────────────────────────
+  // ── Input Mapping System ──
   function setupInput() {
     window.addEventListener('keydown', e => {
       keys[e.code] = true;
@@ -956,56 +1024,51 @@
 
     window.addEventListener('mouseup', () => { isDragging = false; });
 
+    // Touch Controls
     const joyZone  = document.getElementById('joystick-zone');
-    const joyPad   = document.getElementById('joystick-pad');
     const joyThumb = document.getElementById('joystick-thumb');
+    const lookZone = document.getElementById('look-zone');
+    const jumpBtn  = document.getElementById('mobile-jump-btn');
 
     joyZone.addEventListener('touchstart', e => {
-      e.preventDefault();
+      e.stopPropagation();
       const t = e.changedTouches[0];
       joyActive  = true;
       joyOriginX = t.clientX;
       joyOriginY = t.clientY;
-      lookActive = true;
-    }, { passive: false });
+    }, { passive: true });
 
     joyZone.addEventListener('touchmove', e => {
-      e.preventDefault();
       if (!joyActive) return;
       const t  = e.changedTouches[0];
       const dx = t.clientX - joyOriginX;
       const dy = t.clientY - joyOriginY;
       const len = Math.sqrt(dx*dx + dy*dy);
-      const max = 35;
+      const max = 40;
       const cx  = Math.min(len, max) / len * dx || 0;
       const cy2 = Math.min(len, max) / len * dy || 0;
       joyDX = cx / max;
       joyDY = cy2 / max;
       joyThumb.style.transform = `translate(calc(-50% + ${cx}px), calc(-50% + ${cy2}px))`;
-    }, { passive: false });
+    }, { passive: true });
 
     ['touchend','touchcancel'].forEach(ev => {
       joyZone.addEventListener(ev, e => {
-        e.preventDefault();
         joyActive = false;
         joyDX = joyDY = 0;
         joyThumb.style.transform = 'translate(-50%, -50%)';
-      }, { passive: false });
+      }, { passive: true });
     });
 
-    const lookZone = document.getElementById('look-zone');
-
     lookZone.addEventListener('touchstart', e => {
-      e.preventDefault();
       const t = e.changedTouches[0];
       lookTouchId = t.identifier;
       lookLastX   = t.clientX;
       lookLastY   = t.clientY;
       lookActive  = true;
-    }, { passive: false });
+    }, { passive: true });
 
     lookZone.addEventListener('touchmove', e => {
-      e.preventDefault();
       for (let i = 0; i < e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
         if (t.identifier === lookTouchId) {
@@ -1014,21 +1077,27 @@
           lookLastY = t.clientY;
         }
       }
-    }, { passive: false });
+    }, { passive: true });
 
-    ['touchend','touchcancel'].forEach(ev => {
-      lookZone.addEventListener(ev, e => { e.preventDefault(); }, { passive: false });
-    });
+    jumpBtn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isJumping && running) {
+        velocityY = JUMP_FORCE;
+        isJumping = true;
+      }
+    }, { passive: false });
 
     window.addEventListener('resize', () => {
       if (!renderer) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
     });
   }
 
-  // ── Movement & Game Loop ──────────────────────────────────
+  // ── Movement Loop Engine ──
   const moveVec = new THREE.Vector3();
 
   function tick(dt) {
@@ -1094,13 +1163,14 @@
     }
 
     updateChunks(camera.position.x, camera.position.z);
+    updateDynamicLights();
 
     const cx = Math.round(camera.position.x / CELL);
     const cz = Math.round(camera.position.z / CELL);
     document.getElementById('coords').textContent =
       `${cx.toString().padStart(4,' ')} , ${cz.toString().padStart(4,' ')}`;
 
-    renderer.render(scene, camera);
+    composer.render();
   }
 
   let lastTime = 0;
@@ -1112,7 +1182,7 @@
     requestAnimationFrame(loop);
   }
 
-  // ── Start / Stop Controls ──────────────────────────────────
+  // ── Start / Stop Controls ──
   function startGame() {
     if (!renderer) {
       initThree();
@@ -1126,15 +1196,16 @@
       audioCtx.resume();
     }
     if (masterHumGain) {
-      masterHumGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.2);
+      masterHumGain.gain.setTargetAtTime(0.38, audioCtx.currentTime, 0.2);
     }
 
     document.getElementById('hud').classList.add('visible');
     document.getElementById('back-btn').style.display = 'block';
 
     if ('ontouchstart' in window) {
-      document.getElementById('joystick-zone').style.display = 'block';
-      document.getElementById('look-zone').style.display     = 'block';
+      document.getElementById('joystick-zone').style.display   = 'block';
+      document.getElementById('mobile-jump-btn').style.display = 'flex';
+      document.getElementById('look-zone').style.display       = 'block';
     } else {
       document.getElementById('click-prompt').style.display = 'block';
     }
@@ -1153,10 +1224,11 @@
     document.getElementById('back-btn').style.display  = 'none';
     document.getElementById('click-prompt').style.display = 'none';
     document.getElementById('joystick-zone').style.display = 'none';
+    document.getElementById('mobile-jump-btn').style.display = 'none';
     document.getElementById('look-zone').style.display     = 'none';
   }
 
-  // ── DOM hooks ─────────────────────────────────────────────
+  // ── DOM hooks ──
   document.getElementById('enter-btn').addEventListener('click', () => {
     document.getElementById('menu').classList.add('hidden');
     initAudio(); 
