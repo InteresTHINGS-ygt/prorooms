@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BACKROOMS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0900;
+    color: #c8c400;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* ── MENU ── */
+  #menu {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    background: #0a0900;
+    transition: opacity 0.8s ease;
+  }
+
+  #menu.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* CRT scanlines */
+  #menu::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.18) 3px,
+      rgba(0,0,0,0.18) 4px
+    );
+    pointer-events: none;
+    z-index: 200;
+  }
+
+  /* CRT vignette */
+  #menu::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+      transparent 55%,
+      rgba(0,0,0,0.75) 100%
+    );
+    pointer-events: none;
+    z-index: 201;
+  }
+
+  .menu-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    z-index: 202;
+  }
+
+  .title-eyebrow {
+    font-size: clamp(9px, 1.2vw, 13px);
+    letter-spacing: 0.5em;
+    color: #7a7700;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    animation: flicker 6s infinite;
+  }
+
+  .title-main {
+    font-size: clamp(48px, 9vw, 120px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 0.9;
+    color: #c8c400;
+    text-align: center;
+    text-shadow:
+      0 0 30px rgba(200,196,0,0.4),
+      0 0 80px rgba(200,196,0,0.15);
+    animation: titlePulse 4s ease-in-out infinite;
+  }
+
+  .title-sub {
+    font-size: clamp(10px, 1.4vw, 15px);
+    letter-spacing: 0.35em;
+    color: #5a5800;
+    text-transform: uppercase;
+    margin-top: 20px;
+    margin-bottom: 60px;
+  }
+
+  .enter-btn {
+    background: transparent;
+    border: 1px solid #c8c400;
+    color: #c8c400;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(11px, 1.4vw, 15px);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    padding: 16px 48px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  .enter-btn:hover, .enter-btn:focus {
+    background: #c8c400;
+    color: #0a0900;
+    box-shadow: 0 0 30px rgba(200,196,0,0.35);
+  }
+
+  .enter-btn:active {
+    transform: scale(0.97);
+  }
+
+  .hint {
+    margin-top: 48px;
+    font-size: 11px;
+    color: #3a3800;
+    letter-spacing: 0.2em;
+    text-align: center;
+    line-height: 1.9;
+    animation: flicker 8s infinite 2s;
+  }
+
+  .static-line {
+    width: 260px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #3a3800, transparent);
+    margin: 32px auto;
+  }
+
+  /* ── GAME ── */
+  #game-canvas {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+  }
+
+  #hud.visible { display: block; }
+
+  /* Subtle vignette in game */
+  #hud::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+      transparent 60%,
+      rgba(0,0,0,0.55) 100%
+    );
+  }
+
+  /* Scanlines over game too — very subtle */
+  #hud::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.04) 3px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+  }
+
+  .crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    opacity: 0.55;
+  }
+
+  .crosshair::before, .crosshair::after {
+    content: '';
+    position: absolute;
+    background: #c8c400;
+  }
+
+  .crosshair::before {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  .crosshair::after {
+    height: 1px;
+    width: 100%;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  #coords {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: rgba(200,196,0,0.3);
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  #level-tag {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: rgba(200,196,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    text-transform: uppercase;
+  }
+
+  /* Mobile joystick */
+  #joystick-zone {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    height: 200px;
+    z-index: 20;
+    display: none;
+  }
+
+  #look-zone {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 50%;
+    height: 200px;
+    z-index: 20;
+    display: none;
+  }
+
+  #joystick-pad {
+    position: absolute;
+    bottom: 30px;
+    left: 50px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,196,0,0.2);
+    background: rgba(200,196,0,0.04);
+  }
+
+  #joystick-thumb {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(200,196,0,0.35);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  #back-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 50;
+    background: transparent;
+    border: 1px solid rgba(200,196,0,0.25);
+    color: rgba(200,196,0,0.4);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: none;
+    transition: all 0.2s;
+  }
+
+  #back-btn:hover {
+    border-color: rgba(200,196,0,0.6);
+    color: rgba(200,196,0,0.8);
+  }
+
+  /* Click-to-look prompt */
+  #click-prompt {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: rgba(200,196,0,0.4);
+    font-family: 'Courier New', Courier, monospace;
+    text-transform: uppercase;
+    z-index: 20;
+    display: none;
+    animation: blink 2s infinite;
+    text-align: center;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.4; }
+    97% { opacity: 1; }
+    98% { opacity: 0.2; }
+    99% { opacity: 1; }
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 0 0 30px rgba(200,196,0,0.4), 0 0 80px rgba(200,196,0,0.15); }
+    50% { text-shadow: 0 0 45px rgba(200,196,0,0.55), 0 0 100px rgba(200,196,0,0.2); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .title-main, .title-eyebrow, .hint { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <div class="menu-inner">
+    <div class="title-eyebrow">Level 0 &mdash; The Lobby</div>
+    <div class="title-main">THE<br>BACKROOMS</div>
+    <div class="title-sub">No exit &nbsp;·&nbsp; No map &nbsp;·&nbsp; No way out</div>
+
+    <button class="enter-btn" id="enter-btn" autofocus>Enter</button>
+
+    <div class="static-line"></div>
+
+    <div class="hint">
+      WASD / Arrow keys — move<br>
+      Mouse drag — look<br>
+      SPACE — jump &nbsp;·&nbsp; SHIFT — run<br>
+      ESC — menu
+    </div>
+  </div>
+</div>
+
+<canvas id="game-canvas"></canvas>
+
+<div id="hud">
+  <div class="crosshair"></div>
+  <div id="level-tag">Level 0 — The Backrooms</div>
+  <div id="coords">0 , 0</div>
+</div>
+
+<div id="click-prompt">Click to look around</div>
+<button id="back-btn">&#x2190; Menu</button>
+
+<div id="joystick-zone">
+  <div id="joystick-pad">
+    <div id="joystick-thumb"></div>
+  </div>
+</div>
+<div id="look-zone"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  BACKROOMS — Infinite Procedural Maze
+//  Manual yaw/pitch camera (no PointerLockControls)
+// ═══════════════════════════════════════════════════════════
+
+(function () {
+  'use strict';
+
+  // ── Constants ─────────────────────────────────────────────
+  const CELL   = 8;          // metres per cell
+  const WALL_H = 3.2;        // wall height
+  const CHUNK  = 8;          // cells per chunk side
+  const RENDER = 3;          // chunks radius to keep loaded
+  const SPEED  = 6;
+  const RUN    = 13;
+  const CAM_H  = 1.65;
+  const FOV    = 75;
+  const SEED   = 42;
+
+  // Jump configuration
+  const GRAVITY = 24;
+  const JUMP_FORCE = 8.2;
+
+  // Backrooms palette — washed fluorescent yellow
+  const COL_WALL   = 0xd4c97a;
+  const COL_FOG    = 0x1a1900;
+
+  // ── State ─────────────────────────────────────────────────
+  let renderer, scene, camera;
+  let running = false;
+  let chunks  = new Map(); // "cx,cy" → group
+
+  // Input
+  const keys  = {};
+  let yaw     = 0;   // horizontal rotation (radians)
+  let pitch   = 0;   // vertical rotation
+  let isDragging  = false;
+  let lastMouseX  = 0;
+  let lastMouseY  = 0;
+  let lookActive  = false;  // true once user has clicked canvas
+
+  // Physics state
+  let velocityY = 0;
+  let isJumping = false;
+
+  // Mobile joystick
+  let joyActive = false;
+  let joyOriginX = 0, joyOriginY = 0;
+  let joyDX = 0, joyDY = 0;
+
+  // Mobile look
+  let lookTouchId = null;
+  let lookLastX = 0, lookLastY = 0;
+
+  // Audio Context Nodes
+  let audioCtx = null;
+  let humLowOsc = null;
+  let humHighOsc = null;
+  let masterHumGain = null;
+  let footstepTimer = 0;
+
+  // ── Seeded PRNG ───────────────────────────────────────────
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0;
+      seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function chunkRng(cx, cy) {
+    return mulberry32(SEED ^ (cx * 73856093) ^ (cy * 19349663));
+  }
+
+  // ── Maze generator (simple DFS per chunk) ─────────────────
+  function generateChunkMaze(cx, cy) {
+    const rng    = chunkRng(cx, cy);
+    const N      = CHUNK;
+    const visited = new Uint8Array(N * N);
+    const walls  = new Set();
+
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        walls.add(`${x},${y}-E`);
+        walls.add(`${x},${y}-S`);
+      }
+    }
+
+    function openEdge(x, y, dir) { walls.delete(`${x},${y}-${dir}`); }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function carve(x, y) {
+      visited[y * N + x] = 1;
+      const dirs = shuffle(['N','S','E','W']);
+      for (const d of dirs) {
+        let nx = x, ny = y;
+        if (d === 'N') ny--;
+        if (d === 'S') ny++;
+        if (d === 'E') nx++;
+        if (d === 'W') nx--;
+        if (nx < 0 || nx >= N || ny < 0 || ny >= N) continue;
+        if (visited[ny * N + nx]) continue;
+        if (d === 'E') openEdge(x, y, 'E');
+        if (d === 'W') openEdge(nx, ny, 'E');
+        if (d === 'S') openEdge(x, y, 'S');
+        if (d === 'N') openEdge(nx, ny, 'S');
+        carve(nx, ny);
+      }
+    }
+    carve(0, 0);
+
+    function openBorderGaps(edgeCells, wallKey) {
+      const borderRng = chunkRng(cx, cy ^ 0xdeadbeef);
+      edgeCells.forEach(([x, y, dir]) => {
+        if (borderRng() < 0.3) walls.delete(`${x},${y}-${dir}`);
+      });
+    }
+
+    const eastBorder  = Array.from({length: N}, (_, y) => [N-1, y, 'E']);
+    const southBorder = Array.from({length: N}, (_, x) => [x, N-1, 'S']);
+    openBorderGaps(eastBorder,  `${cx},${cy}-E`);
+    openBorderGaps(southBorder, `${cx},${cy}-S`);
+
+    return walls;
+  }
+
+  // ── Procedural Sound Engine (Web Audio API) ────────────────
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterHumGain = audioCtx.createGain();
+    masterHumGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    masterHumGain.connect(audioCtx.destination);
+
+    // 1. Low Frequency electrical hum (50Hz mains frequency)
+    humLowOsc = audioCtx.createOscillator();
+    humLowOsc.type = 'sawtooth';
+    humLowOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
+
+    const humLowFilter = audioCtx.createBiquadFilter();
+    humLowFilter.type = 'lowpass';
+    humLowFilter.frequency.setValueAtTime(90, audioCtx.currentTime);
+
+    const humLowGain = audioCtx.createGain();
+    humLowGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+
+    humLowOsc.connect(humLowFilter);
+    humLowFilter.connect(humLowGain);
+    humLowGain.connect(masterHumGain);
+
+    // 2. High Frequency fluorescent bulb ballast buzz/hiss
+    humHighOsc = audioCtx.createOscillator();
+    humHighOsc.type = 'triangle';
+    humHighOsc.frequency.setValueAtTime(145, audioCtx.currentTime);
+
+    const humHighFilter = audioCtx.createBiquadFilter();
+    humHighFilter.type = 'bandpass';
+    humHighFilter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    humHighFilter.Q.setValueAtTime(2.5, audioCtx.currentTime);
+
+    const humHighGain = audioCtx.createGain();
+    humHighGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+
+    humHighOsc.connect(humHighFilter);
+    humHighFilter.connect(humHighGain);
+    humHighGain.connect(masterHumGain);
+
+    // Start oscillators
+    humLowOsc.start(0);
+    humHighOsc.start(0);
+  }
+
+  function playProceduralFootstep(isVelocityHigh) {
+    if (!audioCtx || audioCtx.state === 'suspended') return;
+    const now = audioCtx.currentTime;
+
+    const thumpOsc = audioCtx.createOscillator();
+    const thumpGain = audioCtx.createGain();
+    thumpOsc.type = 'sine';
+    thumpOsc.frequency.setValueAtTime(75, now);
+    thumpOsc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
+
+    thumpGain.gain.setValueAtTime(isVelocityHigh ? 0.45 : 0.3, now);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+    thumpOsc.connect(thumpGain);
+    thumpGain.connect(audioCtx.destination);
+    thumpOsc.start(now);
+    thumpOsc.stop(now + 0.16);
+
+    const bufferSize = audioCtx.sampleRate * 0.12;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noiseSource = audioCtx.createBufferSource();
+    noiseSource.buffer = buffer;
+
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(320, now);
+    noiseFilter.Q.setValueAtTime(1.2, now);
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(isVelocityHigh ? 0.07 : 0.04, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noiseSource.start(now);
+    noiseSource.stop(now + 0.13);
+  }
+
+  // ── Geometry & Custom Texture Helpers ──────────────────────
+  let wallMat, ceilMat, floorMat;
+
+  function buildMaterials() {
+    
+    // 1. Wallpaper Texture 
+    function makeWallTexture() {
+      const sz = 256;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvs.height = sz;
+      const ctx = cvs.getContext('2d');
+      ctx.fillStyle = '#d4c97a';
+      ctx.fillRect(0, 0, sz, sz);
+      
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.025)';
+      for (let x = 0; x < sz; x += 16) {
+        ctx.fillRect(x, 0, 2, sz);
+      }
+      
+      const img = ctx.getImageData(0, 0, sz, sz);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const v = (Math.random() - 0.5) * 18;
+        d[i]   = Math.min(255, Math.max(0, d[i]   + v));
+        d[i+1] = Math.min(255, Math.max(0, d[i+1] + v));
+        d[i+2] = Math.min(255, Math.max(0, d[i+2] + v));
+      }
+      ctx.putImageData(img, 0, 0);
+
+      const tex = new THREE.CanvasTexture(cvs);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(2, 1);
+      return tex;
+    }
+
+    // 2. Seamless Moist Office Carpet
+    function makeCarpetTexture() {
+      const sz = 128;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvs.height = sz;
+      const ctx = cvs.getContext('2d');
+      
+      ctx.fillStyle = '#837b3e'; 
+      ctx.fillRect(0, 0, sz, sz);
+      
+      const img = ctx.getImageData(0, 0, sz, sz);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 28;
+        d[i]   = Math.min(255, Math.max(0, d[i]   + noise));
+        d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise));
+        d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise));
+      }
+      ctx.putImageData(img, 0, 0);
+      
+      const tex = new THREE.CanvasTexture(cvs);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 4); 
+      return tex;
+    }
+
+    // 3. Rescaled Single Drop Ceiling Grid Square (2x Bigger Grid, No Offset)
+    function makeCeilingTexture() {
+      const sz = 128;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvs.height = sz;
+      const ctx = cvs.getContext('2d');
+      
+      ctx.fillStyle = '#cbd2a2'; 
+      ctx.fillRect(0, 0, sz, sz);
+      
+      const img = ctx.getImageData(0, 0, sz, sz);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (Math.random() < 0.25) {
+          const v = (Math.random() - 0.7) * 22;
+          d[i]   = Math.min(255, Math.max(0, d[i]   + v));
+          d[i+1] = Math.min(255, Math.max(0, d[i+1] + v));
+          d[i+2] = Math.min(255, Math.max(0, d[i+2] + v));
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      
+      // Outer framing t-bars drawn cleanly at boundaries
+      ctx.strokeStyle = 'rgba(64, 61, 44, 0.85)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(0, 0, sz, sz);
+      
+      const tex = new THREE.CanvasTexture(cvs);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      
+      // Matrix factor 4 produces tiles spanning exactly 2x2 meters on an 8m plane
+      tex.repeat.set(4, 4); 
+      return tex;
+    }
+
+    wallMat  = new THREE.MeshLambertMaterial({ map: makeWallTexture() });
+    ceilMat  = new THREE.MeshLambertMaterial({ map: makeCeilingTexture() });
+    floorMat = new THREE.MeshLambertMaterial({ map: makeCarpetTexture() });
+  }
+
+  function buildChunk(cx, cy) {
+    const group  = new THREE.Group();
+    const walls  = generateChunkMaze(cx, cy);
+    const ox     = cx * CHUNK * CELL;
+    const oy     = cy * CHUNK * CELL;
+
+    const wallGeoH  = new THREE.BoxGeometry(CELL, WALL_H, 0.18);
+    const wallGeoV  = new THREE.BoxGeometry(0.18, WALL_H, CELL);
+    const floorGeo  = new THREE.PlaneGeometry(CELL, CELL);
+    const ceilGeo   = new THREE.PlaneGeometry(CELL, CELL);
+
+    for (let cy2 = 0; cy2 < CHUNK; cy2++) {
+      for (let cx2 = 0; cx2 < CHUNK; cx2++) {
+        const wx = ox + cx2 * CELL + CELL / 2;
+        const wz = oy + cy2 * CELL + CELL / 2;
+
+        // Floor
+        const fl = new THREE.Mesh(floorGeo, floorMat);
+        fl.rotation.x = -Math.PI / 2;
+        fl.position.set(wx, 0, wz);
+        group.add(fl);
+
+        // Ceiling
+        const cl = new THREE.Mesh(ceilGeo, ceilMat);
+        cl.rotation.x = Math.PI / 2;
+        cl.position.set(wx, WALL_H, wz);
+        group.add(cl);
+
+        // East wall
+        if (walls.has(`${cx2},${cy2}-E`)) {
+          const m = new THREE.Mesh(wallGeoV, wallMat);
+          m.position.set(wx + CELL / 2, WALL_H / 2, wz);
+          group.add(m);
+        }
+
+        // South wall
+        if (walls.has(`${cx2},${cy2}-S`)) {
+          const m = new THREE.Mesh(wallGeoH, wallMat);
+          m.position.set(wx, WALL_H / 2, wz + CELL / 2);
+          group.add(m);
+        }
+
+        // West border of chunk
+        if (cx2 === 0) {
+          const m = new THREE.Mesh(wallGeoV, wallMat);
+          m.position.set(wx - CELL / 2, WALL_H / 2, wz);
+          group.add(m);
+        }
+
+        // North border of chunk
+        if (cy2 === 0) {
+          const m = new THREE.Mesh(wallGeoH, wallMat);
+          m.position.set(wx, WALL_H / 2, wz - CELL / 2);
+          group.add(m);
+        }
+
+        // Fluorescent Panel Fixtures perfectly snapped inside 1 single tile grid square (1:1 alignment)
+        if ((cx2 + cy2) % 2 === 0) {
+          // Offsetting the position by -1.0 shifts the fixture away from the grid intersection line
+          // directly into the true center of the tile square bounding area.
+          const lx = wx - 1.0;
+          const lz = wz - 1.0;
+
+          // Metal perimeter framing
+          const frameGeo = new THREE.BoxGeometry(2.04, 0.04, 2.04);
+          const frameMat = new THREE.MeshLambertMaterial({ color: 0x4a4734 });
+          const frame = new THREE.Mesh(frameGeo, frameMat);
+          frame.position.set(lx, WALL_H - 0.02, lz);
+          group.add(frame);
+
+          // Internal fluorescent luminous face - dropped lower than frame edge to fix visibility and shadowing bugs
+          const lightGeo = new THREE.BoxGeometry(1.96, 0.02, 1.96); 
+          const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffebb }); 
+          const light    = new THREE.Mesh(lightGeo, lightMat);
+          light.position.set(lx, WALL_H - 0.035, lz);
+          group.add(light);
+        }
+      }
+    }
+
+    group.position.set(0, 0, 0);
+    scene.add(group);
+    return group;
+  }
+
+  // ── Chunk management ──────────────────────────────────────
+  function chunkOf(worldX, worldZ) {
+    return [
+      Math.floor(worldX / (CHUNK * CELL)),
+      Math.floor(worldZ / (CHUNK * CELL))
+    ];
+  }
+
+  function updateChunks(px, pz) {
+    const [pcx, pcy] = chunkOf(px, pz);
+    const needed     = new Set();
+
+    for (let dy = -RENDER; dy <= RENDER; dy++) {
+      for (let dx = -RENDER; dx <= RENDER; dx++) {
+        const key = `${pcx + dx},${pcy + dy}`;
+        needed.add(key);
+        if (!chunks.has(key)) {
+          const g = buildChunk(pcx + dx, pcy + dy);
+          chunks.set(key, g);
+        }
+      }
+    }
+
+    for (const [key, group] of chunks) {
+      if (!needed.has(key)) {
+        scene.remove(group);
+        group.traverse(obj => {
+          if (obj.geometry) obj.geometry.dispose();
+        });
+        chunks.delete(key);
+      }
+    }
+  }
+
+  // ── Collision ─────────────────────────────────────────────
+  const raycaster   = new THREE.Raycaster();
+  const RAY_DIRS    = [
+    new THREE.Vector3( 1, 0,  0),
+    new THREE.Vector3(-1, 0,  0),
+    new THREE.Vector3( 0, 0,  1),
+    new THREE.Vector3( 0, 0, -1),
+  ];
+
+  function getWallMeshes() {
+    const out = [];
+    chunks.forEach(g => {
+      g.children.forEach(c => {
+        if (c.isMesh && c.material === wallMat) out.push(c);
+      });
+    });
+    return out;
+  }
+
+  function slide(pos, vel) {
+    const wallMeshes  = getWallMeshes();
+    const margin      = 0.35;
+    const result      = vel.clone();
+
+    const origY = result.y;
+    result.y = 0;
+
+    RAY_DIRS.forEach(dir => {
+      raycaster.set(pos, dir);
+      const hits = raycaster.intersectObjects(wallMeshes);
+      if (hits.length > 0 && hits[0].distance < margin) {
+        const dot = result.dot(dir);
+        if (dot > 0) result.addScaledVector(dir, -dot);
+      }
+    });
+
+    result.y = origY;
+    return result;
+  }
+
+  // ── Lights ────────────────────────────────────────────────
+  function setupLights() {
+    const ambient = new THREE.AmbientLight(0xd4c970, 0.5);
+    scene.add(ambient);
+
+    const hemi = new THREE.HemisphereLight(0xf0e880, 0x302800, 0.55);
+    scene.add(hemi);
+  }
+
+  // ── Init Three.js ─────────────────────────────────────────
+  function initThree() {
+    const canvas = document.getElementById('game-canvas');
+
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    renderer.setClearColor(COL_FOG);
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(COL_FOG, CELL * 2, CHUNK * CELL * 1.6);
+
+    camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, CHUNK * CELL * 2.5);
+    camera.position.set(CELL / 2, CAM_H, CELL / 2);
+    scene.add(camera);
+
+    buildMaterials();
+    setupLights();
+    updateChunks(camera.position.x, camera.position.z);
+  }
+
+  // ── Camera rotation ───────────────────────────────────────
+  function applyLook(dx, dy) {
+    const SENS = 0.0022;
+    yaw   -= dx * SENS;
+    pitch -= dy * SENS;
+    pitch  = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, pitch));
+    const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+    camera.quaternion.setFromEuler(euler);
+  }
+
+  // ── Input ─────────────────────────────────────────────────
+  function setupInput() {
+    window.addEventListener('keydown', e => {
+      keys[e.code] = true;
+      if (e.code === 'Space') e.preventDefault(); 
+      if (e.code === 'Escape' && running) returnToMenu();
+    });
+    window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+    const canvas = document.getElementById('game-canvas');
+
+    canvas.addEventListener('click', () => {
+      if (!running) return;
+      lookActive = true;
+      document.getElementById('click-prompt').style.display = 'none';
+    });
+
+    window.addEventListener('mousedown', e => {
+      if (!running || !lookActive) return;
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging || !lookActive) return;
+      applyLook(e.clientX - lastMouseX, e.clientY - lastMouseY);
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    const joyZone  = document.getElementById('joystick-zone');
+    const joyPad   = document.getElementById('joystick-pad');
+    const joyThumb = document.getElementById('joystick-thumb');
+
+    joyZone.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      joyActive  = true;
+      joyOriginX = t.clientX;
+      joyOriginY = t.clientY;
+      lookActive = true;
+    }, { passive: false });
+
+    joyZone.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!joyActive) return;
+      const t  = e.changedTouches[0];
+      const dx = t.clientX - joyOriginX;
+      const dy = t.clientY - joyOriginY;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      const max = 35;
+      const cx  = Math.min(len, max) / len * dx || 0;
+      const cy2 = Math.min(len, max) / len * dy || 0;
+      joyDX = cx / max;
+      joyDY = cy2 / max;
+      joyThumb.style.transform = `translate(calc(-50% + ${cx}px), calc(-50% + ${cy2}px))`;
+    }, { passive: false });
+
+    ['touchend','touchcancel'].forEach(ev => {
+      joyZone.addEventListener(ev, e => {
+        e.preventDefault();
+        joyActive = false;
+        joyDX = joyDY = 0;
+        joyThumb.style.transform = 'translate(-50%, -50%)';
+      }, { passive: false });
+    });
+
+    const lookZone = document.getElementById('look-zone');
+
+    lookZone.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      lookTouchId = t.identifier;
+      lookLastX   = t.clientX;
+      lookLastY   = t.clientY;
+      lookActive  = true;
+    }, { passive: false });
+
+    lookZone.addEventListener('touchmove', e => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === lookTouchId) {
+          applyLook(t.clientX - lookLastX, t.clientY - lookLastY);
+          lookLastX = t.clientX;
+          lookLastY = t.clientY;
+        }
+      }
+    }, { passive: false });
+
+    ['touchend','touchcancel'].forEach(ev => {
+      lookZone.addEventListener(ev, e => { e.preventDefault(); }, { passive: false });
+    });
+
+    window.addEventListener('resize', () => {
+      if (!renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
+
+  // ── Movement & Game Loop ──────────────────────────────────
+  const moveVec = new THREE.Vector3();
+
+  function tick(dt) {
+    if (!running) return;
+
+    const isRunning = !!(keys['ShiftLeft'] || keys['ShiftRight']);
+    const speed   = isRunning ? RUN : SPEED;
+    const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+    const right   = new THREE.Vector3( Math.cos(yaw), 0, -Math.sin(yaw));
+
+    moveVec.set(0, 0, 0);
+    if (keys['KeyW'] || keys['ArrowUp'])    moveVec.addScaledVector(forward,  1);
+    if (keys['KeyS'] || keys['ArrowDown'])  moveVec.addScaledVector(forward, -1);
+    if (keys['KeyA'] || keys['ArrowLeft'])  moveVec.addScaledVector(right,   -1);
+    if (keys['KeyD'] || keys['ArrowRight']) moveVec.addScaledVector(right,    1);
+
+    if (joyActive) {
+      moveVec.addScaledVector(forward, -joyDY);
+      moveVec.addScaledVector(right,    joyDX);
+    }
+
+    if (moveVec.lengthSq() > 0) {
+      moveVec.normalize().multiplyScalar(speed * dt);
+    }
+
+    if (keys['Space'] && !isJumping) {
+      velocityY = JUMP_FORCE;
+      isJumping = true;
+    }
+
+    if (isJumping) {
+      velocityY -= GRAVITY * dt;
+      moveVec.y = velocityY * dt;
+    } else {
+      moveVec.y = 0;
+    }
+
+    const safeMove = slide(camera.position, moveVec);
+    camera.position.add(safeMove);
+
+    if (isJumping && camera.position.y <= CAM_H) {
+      camera.position.y = CAM_H;
+      isJumping = false;
+      velocityY = 0;
+      playProceduralFootstep(isRunning); 
+    }
+
+    const moving = moveVec.x * moveVec.x + moveVec.z * moveVec.z > 0.0001;
+    if (!isJumping) {
+      const timeSecs = performance.now() * 0.001;
+      camera.position.y = CAM_H + (moving ? Math.sin(timeSecs * (isRunning ? 11 : 8)) * 0.045 : 0);
+      
+      if (moving) {
+        const stepInterval = isRunning ? 0.28 : 0.44;
+        footstepTimer += dt;
+        if (footstepTimer >= stepInterval) {
+          playProceduralFootstep(isRunning);
+          footstepTimer = 0;
+        }
+      } else {
+        footstepTimer = 0;
+      }
+    }
+
+    updateChunks(camera.position.x, camera.position.z);
+
+    const cx = Math.round(camera.position.x / CELL);
+    const cz = Math.round(camera.position.z / CELL);
+    document.getElementById('coords').textContent =
+      `${cx.toString().padStart(4,' ')} , ${cz.toString().padStart(4,' ')}`;
+
+    renderer.render(scene, camera);
+  }
+
+  let lastTime = 0;
+  function loop(now) {
+    if (!running) return;
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    tick(dt);
+    requestAnimationFrame(loop);
+  }
+
+  // ── Start / Stop Controls ──────────────────────────────────
+  function startGame() {
+    if (!renderer) {
+      initThree();
+      setupInput();
+    }
+
+    running = true;
+    lookActive = false;
+
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    if (masterHumGain) {
+      masterHumGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.2);
+    }
+
+    document.getElementById('hud').classList.add('visible');
+    document.getElementById('back-btn').style.display = 'block';
+
+    if ('ontouchstart' in window) {
+      document.getElementById('joystick-zone').style.display = 'block';
+      document.getElementById('look-zone').style.display     = 'block';
+    } else {
+      document.getElementById('click-prompt').style.display = 'block';
+    }
+
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  }
+
+  function returnToMenu() {
+    running = false;
+    if (masterHumGain && audioCtx) {
+      masterHumGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.15);
+    }
+    document.getElementById('menu').classList.remove('hidden');
+    document.getElementById('hud').classList.remove('visible');
+    document.getElementById('back-btn').style.display  = 'none';
+    document.getElementById('click-prompt').style.display = 'none';
+    document.getElementById('joystick-zone').style.display = 'none';
+    document.getElementById('look-zone').style.display     = 'none';
+  }
+
+  // ── DOM hooks ─────────────────────────────────────────────
+  document.getElementById('enter-btn').addEventListener('click', () => {
+    document.getElementById('menu').classList.add('hidden');
+    initAudio(); 
+    setTimeout(startGame, 800);
+  });
+
+  document.getElementById('back-btn').addEventListener('click', returnToMenu);
+  document.getElementById('game-canvas').addEventListener('contextmenu', e => e.preventDefault());
+
+})();
+</script>
+</body>
+</html>
